@@ -60,7 +60,7 @@ class RL_Trainer():
             print('Num_Selected_Bands: ', np.argwhere(eval_path[-1]['ob_next']>0).shape[0])
             print('Eval_Return: ', np.sum(eval_path[-1]['re']))
             print('Critic_Loss: ', critic_loss)
-            print('Correlation: ', self.logging_df.loc[self.logging_df.shape[0]-1, 'Correlation Next State'])
+            # print('Correlation: ', self.logging_df.loc[self.logging_df.shape[0]-1, 'Correlation Next State'])
             
             prev_selected_bands = current_selected_bands
 
@@ -86,7 +86,7 @@ class RL_Trainer():
         path = []
         for i in range(self.band_selection_num):
             
-            action, action_type = self.agent.policy.get_action(state)
+            action = self.agent.actor_policy.get_action(state)
             state_next[action] += 1
 
             reward, correlation_current_state, correlation_next_state = self.calculate_reward(state, state_next)
@@ -96,34 +96,34 @@ class RL_Trainer():
             
             state = state_next.copy()
         
-            if iter_num % 25 == 0:
-                q_values = self.agent.critic.get_action(state)
+            # if iter_num % 25 == 0:
+            #     q_values = self.agent.critic_policy.forward(state)
                 
-                sampled_paths = self.replay_buffer.sample_buffer_random(1)
+            #     sampled_paths = self.replay_buffer.sample_buffer_random(1)
                 
-                flat_sampled_path = [path for trajectory in sampled_paths for path in trajectory]
-                obs = np.array([path['ob'] for path in flat_sampled_path])
-                acs = np.array([path['ac'] for path in flat_sampled_path])
-                obs_next = np.array([path['ob_next'] for path in flat_sampled_path])
-                res = np.array([path['re'] for path in flat_sampled_path])
-                terminals = np.array([path['terminal'] for path in flat_sampled_path])
+            #     flat_sampled_path = [path for trajectory in sampled_paths for path in trajectory]
+            #     obs = np.array([path['ob'] for path in flat_sampled_path])
+            #     acs = np.array([path['ac'] for path in flat_sampled_path])
+            #     obs_next = np.array([path['ob_next'] for path in flat_sampled_path])
+            #     res = np.array([path['re'] for path in flat_sampled_path])
+            #     terminals = np.array([path['terminal'] for path in flat_sampled_path])
                 
-                loss_value = self.agent.critic.update(obs, acs, obs_next, res, terminals)
+            #     loss_value = self.agent.critic_policy.update(obs, acs, obs_next, res, terminals)
                 
-                row = {
-                    "iter_num": iter_num,
-                    "Selected Band": i,
-                    "Action Type": action_type,
-                    "Mean": torch.mean(q_values).detach().numpy(),
-                    "Min": torch.min(q_values).detach().numpy(),
-                    "Max": torch.max(q_values).detach().numpy(),
-                    "Correlation Current State" : correlation_current_state,
-                    "Correlation Next State" : correlation_next_state,
-                    "Reward" : reward,
-                    "Loss" : loss_value
-                }
+            #     row = {
+            #         "iter_num": iter_num,
+            #         "Selected Band": i,
+            #         # "Action Type": action_type,
+            #         "Mean": torch.mean(q_values).detach().numpy(),
+            #         "Min": torch.min(q_values).detach().numpy(),
+            #         "Max": torch.max(q_values).detach().numpy(),
+            #         "Correlation Current State" : correlation_current_state,
+            #         "Correlation Next State" : correlation_next_state,
+            #         "Reward" : reward,
+            #         "Loss" : loss_value
+            #     }
                 
-                self.logging_df = self.logging_df.append(row, ignore_index=True)
+            #     self.logging_df = self.logging_df.append(row, ignore_index=True)
                      
         return path
 

@@ -17,8 +17,10 @@ from matplotlib.pyplot import figure
 import pickle
 from utils import from_numpy, to_numpy, DataManager, ReplayBuffer
 from rl_trainer import RL_Trainer
+from agents.dqn_agent import DQNAgent
 
 params = {'agent':{
+            'agent_class' : DQNAgent,
             'n_iter':10000,
             'trajectory_sample_size': 10,
             'batch_size':10,
