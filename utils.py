@@ -1,6 +1,11 @@
 import numpy as np
 import torch
 import scipy
+import os
+from datetime import datetime
+import pandas as pd
+import json
+import pickle
 
 class ReplayBuffer():
     
@@ -40,7 +45,7 @@ class DataManager():
         #self.y_test = None
         
     def load_indian_pine_data(self):
-        hyper_path = '/Users/pratikaher/FALL22/HyperSpectralRL/ForPratik/data_indian_pines_drl.mat'
+        hyper_path = self.data_file_path
         hyper = scipy.io.loadmat(hyper_path)['x'][:, :self.num_bands]
         #hyper = np.load(hyper_path)
         # randomly sample for x% of the pixels
@@ -49,7 +54,7 @@ class DataManager():
         print(self.rl_data.shape)
         
     def load_salient_objects_data(self):
-        hyper_path = '../data/salient_objects/hyperspectral_imagery/0001.npy'
+        hyper_path = self.data_file_path
         hyper = np.load(hyper_path)
         print(hyper.shape)
         # randomly sample for x% of the pixels
@@ -60,6 +65,32 @@ class DataManager():
     def load_botswana_data(self):
         self.rl_data = scipy.io.loadmat(self.data_file_path)
     #def load_salient_objects(self)
+
+class LogManager():
+    def __init__(self, params):
+        
+        self.logging_df = pd.DataFrame()
+        self.dir_name = self._create_directory()
+        self.log_param(params)
+
+    def _create_directory(self):
+        dir_name = f'output/Run - {datetime.now()}'
+        os.mkdir(dir_name)
+        return dir_name
+
+    def log_df(self):
+        self.logging_df.to_csv(f'{self.dir_name}/Results.csv')
+
+    def log_param(self, params):
+        with open (f'{self.dir_name}/config.json', 'w') as f:
+            json.dump(params, f)
+
+    def save_npy(self, file_name, np_array):
+        with open(f'{self.dir_name}/{file_name}', 'wb') as f:
+            np.save(f, np_array)
+
+
+
 
 
 device = 'cpu'
