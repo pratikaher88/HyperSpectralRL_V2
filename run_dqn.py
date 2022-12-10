@@ -17,7 +17,7 @@ from matplotlib.pyplot import figure
 import pickle
 from utils import from_numpy, to_numpy, DataManager, ReplayBuffer
 from rl_trainer import RL_Trainer
-from agents.dqn_agent import DQNAgent
+
 
 params = {'agent':{
             'agent_class' : 'DQN',
@@ -25,14 +25,13 @@ params = {'agent':{
             'trajectory_sample_size': 10,
             'batch_size':10,
             'num_critic_updates':10,
-            'num_bands':200,
+            'num_bands':81,
             'reward_type':'correlation',
             'exp_reward':True
             },
           'data':{
             'band_selection_num':30,
-            'dataset_type':'IndianPines',
-            'data_file_path':r'data/data_indian_pines_drl.mat',
+            'dataset_type':'SoilMoisture',
             'sample_ratio':0.1
             },
           'critic':{

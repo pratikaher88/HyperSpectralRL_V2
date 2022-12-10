@@ -1,3 +1,4 @@
+from re import L
 import numpy as np
 import torch
 import scipy
@@ -26,12 +27,11 @@ class DataManager():
     def __init__(self, params, num_bands):
         self.rl_data = None
         self.dataset_type = params['dataset_type']
-        self.data_file_path = params['data_file_path']
         self.sample_ratio = params['sample_ratio']
         
         self.num_bands = num_bands
         #load the data
-        assert self.dataset_type in ('IndianPines', 'Botswana', 'SalientObjects'), f'{self.dataset_type} is not valid'
+        assert self.dataset_type in ('IndianPines', 'Botswana', 'SalientObjects', 'PlasticFlakes', 'SoilMoisture'), f'{self.dataset_type} is not valid'
         #separating out in case any of the data requires unique pre-processig
         if self.dataset_type == 'IndianPines':
             self.load_indian_pine_data()
@@ -39,32 +39,70 @@ class DataManager():
             self.load_botswana_data()
         elif self.dataset_type == 'SalientObjects':
             self.load_salient_objects_data()
+        elif self.dataset_type == 'PlasticFlakes':
+            self.load_plastic_flakes_data()
+        elif self.dataset_type == 'SoilMoisture':
+            self.load_soil_moisture_data()
         #self.x_train = None
         #self.y_train = None
         #self.x_test = None
         #self.y_test = None
         
     def load_indian_pine_data(self):
-        hyper_path = self.data_file_path
-        hyper = scipy.io.loadmat(hyper_path)['x'][:, :self.num_bands]
+        #hyper_path = self.data_file_path
+        #hyper = scipy.io.loadmat(hyper_path)['x'][:, :self.num_bands]
         #hyper = np.load(hyper_path)
         # randomly sample for x% of the pixels
-        indices = np.random.randint(0, hyper.shape[0], int(hyper.shape[0]*self.sample_ratio))
-        self.rl_data = hyper[indices, :]
-        print(self.rl_data.shape)
+        #indices = np.random.randint(0, hyper.shape[0], int(hyper.shape[0]*self.sample_ratio))
+        #self.rl_data = hyper[indices, :]
+        #print(self.rl_data.shape)
+
+        self.rl_data = self._stack('data/indian_pines/hyperspectral_imagery')
+        self._sample()
+        
         
     def load_salient_objects_data(self):
-        hyper_path = self.data_file_path
-        hyper = np.load(hyper_path)
-        print(hyper.shape)
+        
+        self.rl_data = self._stack('data/salient_objects/hyperspectral_imagery')
+        self._sample()
+
+        #self.rl_data = np.load('')
         # randomly sample for x% of the pixels
-        indices = np.random.randint(0, hyper.shape[0], int(hyper.shape[0]*self.sample_ratio))
-        self.rl_data = hyper[indices, :]
-        print(self.rl_data.shape)
+        #indices = np.random.randint(0, hyper.shape[0], int(hyper.shape[0]*self.sample_ratio))
+        #self.rl_data = hyper[indices, :]
+        #print(self.rl_data.shape)
+
+    def load_plastic_flakes_data(self):
+        self.rl_data = self._stack('data/plastic_flakes/hyperspectral_imagery')
+        self._sample()
         
     def load_botswana_data(self):
         self.rl_data = scipy.io.loadmat(self.data_file_path)
     #def load_salient_objects(self)
+
+    def load_soil_moisture_data(self):
+        self.rl_data = self._stack('data/soil_moisture/hyperspectral_imagery')
+        self._sample()
+
+    def _sample(self):
+        indices = np.random.randint(0, self.rl_data.shape[0], int(self.rl_data.shape[0]*self.sample_ratio))
+        self.rl_data[indices, :]
+
+    def _stack(self, data_folder):
+        data = None
+
+        for _, _, files in os.walk(data_folder):
+            for idx, file in enumerate(files):
+                print(f'\rLoading {idx} out of {len(files)}', end='')
+                file_data = np.load(os.path.join(data_folder, file))
+
+                if isinstance(data, type(None)):
+                    data = file_data
+                else:
+                    data = np.vstack((data, file_data))
+
+        return data
+
 
 class LogManager():
     def __init__(self, params):
@@ -88,7 +126,6 @@ class LogManager():
     def save_npy(self, file_name, np_array):
         with open(f'{self.dir_name}/{file_name}', 'wb') as f:
             np.save(f, np_array)
-
 
 
 
