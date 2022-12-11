@@ -21,7 +21,7 @@ from rl_trainer import RL_Trainer
 
 params = {'agent':{
             'agent_class' : 'DQN',
-            'n_iter':10,
+            'n_iter':100,
             'trajectory_sample_size': 10,
             'batch_size':10,
             'num_critic_updates':10,
@@ -35,7 +35,8 @@ params = {'agent':{
             'sample_ratio':0.1
             },
           'critic':{
-            'gamma':0.99
+            'gamma':0.99,
+            'double_q':False
             },
           'policy':{
             'epsilon':0.99,
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     rl_trainer.run_training_loop()
 
     print(rl_trainer.LogManager.logging_df.head())
-    rl_trainer.LogManager.log_df()
+    rl_trainer.LogManager.log_final_data()
 
 
 # import pickle

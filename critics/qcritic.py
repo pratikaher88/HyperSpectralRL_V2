@@ -29,6 +29,7 @@ class QCritic():
         self.critic_target = self.create_network()
         
         self.gamma = params['gamma']
+        self.double_q = params['double_q']
         
         self.loss = nn.SmoothL1Loss()
     
@@ -49,6 +50,7 @@ class QCritic():
         # will take in one hot encoded states and output a list of qu values
         
         q_values = self.critic(obs)
+        q_values = q_values - (obs*999)
         
         return q_values
     
@@ -71,17 +73,22 @@ class QCritic():
         q_actions = full_q_values.argmax(dim=1)
         q_values = torch.gather(full_q_values, 1, q_actions.unsqueeze(1)).squeeze(1)
         
-        
         #print('Obs ', obs.shape)
         #print('Full Q ', full_q_values.shape)
         #print('Q Actions ', q_actions.shape)
         #print('Q Val ', q_values.shape)
         
         full_q_next_target = self.critic_target(next_obs)
-        q_actions_next = self.critic(next_obs).argmax(dim=1)
+
+        if self.double_q:
+            q_actions_next = self.critic(next_obs).argmax(dim=1)
+            q_values_next = torch.gather(full_q_next_target, 1, q_actions_next.unsqueeze(1)).squeeze(1)
+        else:
+            q_values_next, _ = full_q_next_target.max(dim=1)
+
         #q_values_next = full_q_next.max(dim=1)
         #print('q_values_next', q_values_next)
-        q_values_next = torch.gather(full_q_next_target, 1, q_actions_next.unsqueeze(1)).squeeze(1)
+        
         
         #print('reward', type(reward_n.shape))
         #print('q_values_next', type(q_values_next))

@@ -7,6 +7,8 @@ from datetime import datetime
 import pandas as pd
 import json
 import pickle
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 class ReplayBuffer():
     
@@ -28,7 +30,13 @@ class DataManager():
         self.rl_data = None
         self.dataset_type = params['dataset_type']
         self.sample_ratio = params['sample_ratio']
-        
+
+        #log data metadata
+        self.data_metadata  = {}
+        self.col_count = None
+        self.full_row_count = None
+        self.sample_row_count = None
+
         self.num_bands = num_bands
         #load the data
         assert self.dataset_type in ('IndianPines', 'Botswana', 'SalientObjects', 'PlasticFlakes', 'SoilMoisture'), f'{self.dataset_type} is not valid'
@@ -43,10 +51,13 @@ class DataManager():
             self.load_plastic_flakes_data()
         elif self.dataset_type == 'SoilMoisture':
             self.load_soil_moisture_data()
+
         #self.x_train = None
         #self.y_train = None
         #self.x_test = None
         #self.y_test = None
+
+
         
     def load_indian_pine_data(self):
         #hyper_path = self.data_file_path
@@ -58,12 +69,18 @@ class DataManager():
         #print(self.rl_data.shape)
 
         self.rl_data = self._stack('data/indian_pines/hyperspectral_imagery')
+        self.data_metadata['col_count'] = self.rl_data.shape[1]
+        self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
+        
+
         
         
     def load_salient_objects_data(self):
         
         self.rl_data = self._stack('data/salient_objects/hyperspectral_imagery')
+        self.data_metadata['col_count'] = self.rl_data.shape[1]
+        self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
 
         #self.rl_data = np.load('')
@@ -74,6 +91,8 @@ class DataManager():
 
     def load_plastic_flakes_data(self):
         self.rl_data = self._stack('data/plastic_flakes/hyperspectral_imagery')
+        self.data_metadata['col_count'] = self.rl_data.shape[1]
+        self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
         
     def load_botswana_data(self):
@@ -82,11 +101,14 @@ class DataManager():
 
     def load_soil_moisture_data(self):
         self.rl_data = self._stack('data/soil_moisture/hyperspectral_imagery')
+        self.data_metadata['col_count'] = self.rl_data.shape[1]
+        self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
 
     def _sample(self):
         indices = np.random.randint(0, self.rl_data.shape[0], int(self.rl_data.shape[0]*self.sample_ratio))
-        self.rl_data[indices, :]
+        self.rl_data = self.rl_data[indices, :]
+        self.data_metadata['sample_row_count'] = self.rl_data.shape[0]
 
     def _stack(self, data_folder):
         data = None
@@ -109,23 +131,36 @@ class LogManager():
         
         self.logging_df = pd.DataFrame()
         self.dir_name = self._create_directory()
-        self.log_param(params)
+        self.log_json('config.json', params)
 
     def _create_directory(self):
         dir_name = f'output/Run - {datetime.now()}'
         os.mkdir(dir_name)
         return dir_name
 
+    def log_final_data(self, band_selection_num=30):
+        self.log_df()
+        self.log_reward_plot(band_selection_num)
+
+
     def log_df(self):
         self.logging_df.to_csv(f'{self.dir_name}/Results.csv')
 
-    def log_param(self, params):
-        with open (f'{self.dir_name}/config.json', 'w') as f:
+    def log_json(self, file_name, params):
+        with open (f'{self.dir_name}/{file_name}', 'w') as f:
             json.dump(params, f)
 
     def save_npy(self, file_name, np_array):
         with open(f'{self.dir_name}/{file_name}', 'wb') as f:
             np.save(f, np_array)
+
+    def log_reward_plot(self, band_selection_num):
+
+        filter_df = self.logging_df[self.logging_df['Selected Band'] == band_selection_num-1]
+        sns.lineplot(x='iter_num', y='Metric Next State', data=filter_df)
+        plt.show()
+        plt.savefig(os.path.join(self.dir_name, 'reward.png'))
+
 
 
 

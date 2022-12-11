@@ -32,6 +32,7 @@ class RL_Trainer():
         self.data_params = params['data']
         
         self.DataManager = DataManager(self.data_params, self.num_bands)
+        self.LogManager.log_json('data_metadata.json', self.DataManager.data_metadata)
 
         self.replay_buffer = ReplayBuffer()
         self.cache = external_cache
@@ -64,7 +65,7 @@ class RL_Trainer():
             print('Num_Selected_Bands: ', np.argwhere(eval_path[-1]['ob_next']>0).shape[0])
             print('Eval_Return: ', np.sum(eval_path[-1]['re']))
             print('Critic_Loss: ', critic_loss)
-            print('Correlation: ', self.LogManager.logging_df.loc[self.LogManager.logging_df.shape[0]-1, 'Correlation Next State'])
+            print('Correlation: ', self.LogManager.logging_df.loc[self.LogManager.logging_df.shape[0]-1, 'Metric Next State'])
             
             prev_selected_bands = current_selected_bands
 
@@ -95,7 +96,7 @@ class RL_Trainer():
             action, action_type = self.agent.policy.get_action(state)
             state_next[action] += 1
 
-            reward, correlation_current_state, correlation_next_state = self.calculate_reward(state, state_next)
+            reward, metric_current_state, metric_next_state = self.calculate_reward(state, state_next)
 
             terminal = 1 if i == self.band_selection_num - 1 else 0
             path.append(self.Path(state.copy(), action, state_next.copy(), reward, terminal))
@@ -123,8 +124,8 @@ class RL_Trainer():
                     "Mean": torch.mean(q_values).detach().numpy(),
                     "Min": torch.min(q_values).detach().numpy(),
                     "Max": torch.max(q_values).detach().numpy(),
-                    "Correlation Current State" : correlation_current_state,
-                    "Correlation Next State" : correlation_next_state,
+                    "Metric Current State" : metric_current_state,
+                    "Metric Next State" : metric_next_state,
                     "Reward" : reward,
                     "Loss" : loss_value
                 }
