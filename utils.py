@@ -39,7 +39,7 @@ class DataManager():
 
         self.num_bands = num_bands
         #load the data
-        assert self.dataset_type in ('IndianPines', 'Botswana', 'SalientObjects', 'PlasticFlakes', 'SoilMoisture'), f'{self.dataset_type} is not valid'
+        assert self.dataset_type in ('IndianPines', 'Botswana', 'SalientObjects', 'PlasticFlakes', 'SoilMoisture', 'Foods'), f'{self.dataset_type} is not valid'
         #separating out in case any of the data requires unique pre-processig
         if self.dataset_type == 'IndianPines':
             self.load_indian_pine_data()
@@ -51,29 +51,23 @@ class DataManager():
             self.load_plastic_flakes_data()
         elif self.dataset_type == 'SoilMoisture':
             self.load_soil_moisture_data()
+        elif self.dataset_type == 'Foods':
+            self.load_foods_data()
 
-        #self.x_train = None
-        #self.y_train = None
-        #self.x_test = None
-        #self.y_test = None
+    def load_foods_data(self):
 
-
+        self.rl_data = self._stack('data/foods/hyperspectral_imagery')
+        self.data_metadata['col_count'] = self.rl_data.shape[1]
+        self.data_metadata['full_row_count'] = self.rl_data.shape[0]
+        self._sample()
         
     def load_indian_pine_data(self):
-        #hyper_path = self.data_file_path
-        #hyper = scipy.io.loadmat(hyper_path)['x'][:, :self.num_bands]
-        #hyper = np.load(hyper_path)
-        # randomly sample for x% of the pixels
-        #indices = np.random.randint(0, hyper.shape[0], int(hyper.shape[0]*self.sample_ratio))
-        #self.rl_data = hyper[indices, :]
-        #print(self.rl_data.shape)
+
 
         self.rl_data = self._stack('data/indian_pines/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
-        
-
         
         
     def load_salient_objects_data(self):
@@ -83,11 +77,7 @@ class DataManager():
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
 
-        #self.rl_data = np.load('')
-        # randomly sample for x% of the pixels
-        #indices = np.random.randint(0, hyper.shape[0], int(hyper.shape[0]*self.sample_ratio))
-        #self.rl_data = hyper[indices, :]
-        #print(self.rl_data.shape)
+
 
     def load_plastic_flakes_data(self):
         self.rl_data = self._stack('data/plastic_flakes/hyperspectral_imagery')
