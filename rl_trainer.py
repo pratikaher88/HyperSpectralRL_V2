@@ -43,6 +43,7 @@ class RL_Trainer():
         if self.agent_params['agent_class'] == 'DQN':
             agent_class = DQNAgent
         self.agent = agent_class(self, params)
+        self.exp_reward = self.agent_params['exp_reward']
 
     
     def run_training_loop(self):
@@ -148,7 +149,12 @@ class RL_Trainer():
             a = self.reward_func(state)
             b = self.reward_func(state_next)
             #FLIPPED THE SIGN FOR TESTING
-            return a-b, a, b
+            
+            if self.exp_reward:
+                return np.exp(a-b), a, b
+            else:
+                return a-b, a, b
+
 #             return np.exp(a-b), a, b
     
     
@@ -202,11 +208,18 @@ class RL_Trainer():
             selected_bands.extend([band[0]]*int(state[band[0]]))
 
         normalized_mutual_info_score_sum = 0
-        for i in selected_bands:
-            for j in selected_bands:
-                
-                normalized_mutual_info_score_sum += normalized_mutual_info_score(self.DataManager.rl_data[:, i],
-                                                                                 self.DataManager.rl_data[:, j])
+        for idx_i, i in enumerate(selected_bands):
+            for idx_j, j in enumerate(selected_bands):
+                if idx_i != idx_j:
+                    if repr((i,j)) in self.cache:
+                        result = self.cache[repr((i,j))]
+                    else:
+                        result = normalized_mutual_info_score(self.DataManager.rl_data[:, i],
+                                                              self.DataManager.rl_data[:, j])
+                        self.cache[repr((i,j))] = result
+                    
+                    normalized_mutual_info_score_sum += result
+                        
                 
         return normalized_mutual_info_score_sum/(len(selected_bands)**2)
         
