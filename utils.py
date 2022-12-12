@@ -39,7 +39,7 @@ class DataManager():
 
         self.num_bands = num_bands
         #load the data
-        assert self.dataset_type in ('IndianPines', 'Botswana', 'SalientObjects', 'PlasticFlakes', 'SoilMoisture'), f'{self.dataset_type} is not valid'
+        assert self.dataset_type in ('IndianPines', 'Botswana', 'SalientObjects', 'PlasticFlakes', 'SoilMoisture', 'Foods'), f'{self.dataset_type} is not valid'
         #separating out in case any of the data requires unique pre-processig
         if self.dataset_type == 'IndianPines':
             self.load_indian_pine_data()
@@ -51,6 +51,9 @@ class DataManager():
             self.load_plastic_flakes_data()
         elif self.dataset_type == 'SoilMoisture':
             self.load_soil_moisture_data()
+        elif self.dataset_type == 'Foods':
+            self.load_foods_data()
+
 
         #self.x_train = None
         #self.y_train = None
@@ -104,6 +107,13 @@ class DataManager():
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
+
+    def load_foods_data(self):
+        self.rl_data = self._stack('data/foods/hyperspectral_imagery')
+        self.data_metadata['col_count'] = self.rl_data.shape[1]
+        self.data_metadata['full_row_count'] = self.rl_data.shape[0]
+        self._sample()
+
 
     def _sample(self):
         indices = np.random.randint(0, self.rl_data.shape[0], int(self.rl_data.shape[0]*self.sample_ratio))
