@@ -1,4 +1,5 @@
 from agents.dqn_agent import DQNAgent
+from agents.ac_agent import ACAgent
 import scipy
 import numpy as np
 import pandas as pd
@@ -7,7 +8,6 @@ from scipy.stats.stats import pearsonr
 import torch
 from matplotlib.pyplot import figure
 from utils import from_numpy, to_numpy, DataManager, ReplayBuffer, LogManager
-from agents.dqn_agent import DQNAgent
 from sklearn.metrics import normalized_mutual_info_score
 
 
@@ -117,8 +117,8 @@ class RL_Trainer():
                 if self.agent_class == 'DQN':
                     q_values = self.agent.critic.get_action(state)
                 elif self.agent_class == 'AC':
-                    q_values, _ = self.agent.policy.get_action(state)
-                    q_values = from_numpy(q_values)
+                    q_values = self.agent.critic.get_action(state)
+                    # q_values = from_numpy(np.ndarray([q_values]))
                     # print("Q values from network", q_values)
                 
                 sampled_paths = self.replay_buffer.sample_buffer_random(1)
@@ -144,6 +144,8 @@ class RL_Trainer():
                     "Reward" : reward,
                     "Loss" : loss_value
                 }
+
+                print(row)
                 
                 self.LogManager.logging_df = self.LogManager.logging_df.append(row, ignore_index=True)
                      
