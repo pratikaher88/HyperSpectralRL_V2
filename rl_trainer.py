@@ -38,8 +38,12 @@ class RL_Trainer():
         self.cache = external_cache
 
         assert self.agent_params['agent_class'] in ['DQN', 'AC'], 'Invalid Agent Type'
+        
         if self.agent_params['agent_class'] == 'DQN':
             agent_class = DQNAgent
+        elif self.agent_params['agent_class'] == 'AC':
+            agent_class = DQNAgent
+
         self.agent = agent_class(self, params)
 
     

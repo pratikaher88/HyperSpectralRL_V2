@@ -147,6 +147,7 @@ class LogManager():
         self.logging_df.to_csv(f'{self.dir_name}/Results.csv')
 
     def log_json(self, file_name, params):
+        print(params)
         with open (f'{self.dir_name}/{file_name}', 'w') as f:
             json.dump(params, f)
 

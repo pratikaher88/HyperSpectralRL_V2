@@ -1,10 +1,10 @@
 import pickle
-from rl_trainer_ac import RL_Trainer
+from rl_trainer import RL_Trainer
 from agents.ac_agent import ACAgent
 
 
 params = {'agent':{
-            'agent_class': ACAgent,
+            'agent_class': 'AC',
             'n_iter':10000,
             'trajectory_sample_size': 10,
             'batch_size':10,
@@ -23,7 +23,9 @@ params = {'agent':{
             'num_target_updates' : 1,
             'num_bands':200,
             'gamma':0.99,
-            'learning_rate': 0.001
+            'learning_rate': 0.001,
+            'double_q':False
+
             },
           'policy':{
             'epsilon':0.99,

@@ -1,4 +1,5 @@
-from agents.dqn_agent import DQNAgent
+from agents.ac_agent import ACAgent 
+
 import scipy
 import numpy as np
 import pandas as pd
@@ -6,11 +7,13 @@ import torch.nn as nn
 from scipy.stats.stats import pearsonr
 import torch
 from matplotlib.pyplot import figure
-from utils import from_numpy, to_numpy, DataManager, ReplayBuffer
+from utils import from_numpy, to_numpy, DataManager, ReplayBuffer, LogManager
 
 class RL_Trainer():
 
     def __init__(self, params, external_cache = {}):
+
+        self.LogManager = LogManager(params)
         
         self.agent_params = params['agent']
         self.n_iter = self.agent_params['n_iter']
@@ -34,10 +37,14 @@ class RL_Trainer():
         self.LogManager.logging_df = pd.DataFrame()
         self.cache = external_cache
 
-        agent_class = self.agent_params['agent_class']
+        # agent_class = self.agent_params['agent_class']
+        # self.agent = agent_class(self, params)
+
+        if self.agent_params['agent_class'] == 'AC':
+            agent_class = ACAgent
+        
         self.agent = agent_class(self, params)
 
-    
     def run_training_loop(self):
         
         prev_selected_bands = np.zeros(self.num_bands)
