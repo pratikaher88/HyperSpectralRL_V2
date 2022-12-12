@@ -19,6 +19,8 @@ _str_to_activation = {
     'selu': nn.SELU(),
     'softplus': nn.Softplus(),
     'identity': nn.Identity(),
+    'softmax': nn.Softmax(),
+    'linear': nn.Linear(64, 64)
 }
 
 Activation = Union[str, nn.Module]

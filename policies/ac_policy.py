@@ -20,7 +20,8 @@ class CriticPolicy():
         self.critic_network = build_mlp(input_size=self.num_bands,
                                     output_size=1,
                                     n_layers=2,
-                                    size=64)
+                                    size=64,
+                                    activation='linear')
         self.loss = nn.MSELoss()
         self.optimizer = optim.Adam(
             self.critic_network.parameters(),
@@ -101,7 +102,8 @@ class ActorPolicy():
         self.logits_na = build_mlp(input_size=self.num_bands,
                                     output_size=self.num_bands,
                                     n_layers=2,
-                                    size=64)
+                                    size=64,
+                                    activation='softmax')
 
         self.optimizer = optim.Adam(self.logits_na.parameters(),
                                         self.learning_rate)
@@ -141,11 +143,19 @@ class ActorPolicy():
             selected_idx = action_distribution.sample()
             
             # print(selected_idx, selected_bands)
+            count = 0
+            unselected_bands = np.squeeze(np.argwhere(obs == 0))
             while selected_idx in selected_bands:
                 selected_idx = action_distribution.sample()
+                if count > 10:
+                    selected_idx = np.random.choice(unselected_bands)
+                count += 1
+
+
+            # print(selected_idx)
 
             action_type = "Sampled Action"
-            
+        
         self.decay_epsilon()
         return selected_idx, action_type
     

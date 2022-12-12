@@ -7,7 +7,7 @@ params = {'agent':{
             'agent_class': 'AC',
             'n_iter':5000,
             'trajectory_sample_size': 10,
-            'batch_size':100,
+            'batch_size':10,
             'num_critic_updates':10,
             'num_bands':200,
             'reward_type':'correlation',
@@ -20,7 +20,7 @@ params = {'agent':{
             'band_selection_num': 30,
             'learning_rate': 0.001,
             'epsilon': 1,
-            'epsilon_decay':0.9999
+            'epsilon_decay':0.9999999
           },
           'critic':{
             'num_grad_steps_per_target_update' : 1,
