@@ -31,7 +31,7 @@ class RL_Trainer():
         self.DataManager = DataManager(self.data_params, self.num_bands)
 
         self.replay_buffer = ReplayBuffer()
-        self.logging_df = pd.DataFrame()
+        self.LogManager.logging_df = pd.DataFrame()
         self.cache = external_cache
 
         agent_class = self.agent_params['agent_class']
@@ -60,7 +60,7 @@ class RL_Trainer():
             print('Num_Selected_Bands: ', np.argwhere(eval_path[-1]['ob_next']>0).shape[0])
             print('Eval_Return: ', np.sum(eval_path[-1]['re']))
             print('Critic_Loss: ', critic_loss)
-            # print('Correlation: ', self.logging_df.loc[self.logging_df.shape[0]-1, 'Correlation Next State'])
+            # print('Correlation: ', self.LogManager.logging_df.loc[self.LogManager.logging_df.shape[0]-1, 'Correlation Next State'])
             
             prev_selected_bands = current_selected_bands
 
@@ -123,7 +123,7 @@ class RL_Trainer():
             #         "Loss" : loss_value
             #     }
                 
-            #     self.logging_df = self.logging_df.append(row, ignore_index=True)
+            #     self.LogManager.logging_df = self.LogManager.logging_df.append(row, ignore_index=True)
                      
         return path
 

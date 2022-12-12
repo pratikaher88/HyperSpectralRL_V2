@@ -6,12 +6,15 @@ import torch.nn as nn
 from scipy.stats.stats import pearsonr
 import torch
 from matplotlib.pyplot import figure
-from utils import from_numpy, to_numpy, DataManager, ReplayBuffer
+from utils import from_numpy, to_numpy, DataManager, ReplayBuffer, LogManager
+from agents.dqn_agent import DQNAgent
 
 class RL_Trainer():
 
     def __init__(self, params, external_cache = {}):
         
+        self.LogManager = LogManager(params)
+
         self.agent_params = params['agent']
         self.n_iter = self.agent_params['n_iter']
 
@@ -29,12 +32,14 @@ class RL_Trainer():
         self.data_params = params['data']
         
         self.DataManager = DataManager(self.data_params, self.num_bands)
+        self.LogManager.log_json('data_metadata.json', self.DataManager.data_metadata)
 
         self.replay_buffer = ReplayBuffer()
-        self.logging_df = pd.DataFrame()
         self.cache = external_cache
 
-        agent_class = self.agent_params['agent_class']
+        assert self.agent_params['agent_class'] in ['DQN', 'AC'], 'Invalid Agent Type'
+        if self.agent_params['agent_class'] == 'DQN':
+            agent_class = DQNAgent
         self.agent = agent_class(self, params)
 
     
@@ -60,9 +65,11 @@ class RL_Trainer():
             print('Num_Selected_Bands: ', np.argwhere(eval_path[-1]['ob_next']>0).shape[0])
             print('Eval_Return: ', np.sum(eval_path[-1]['re']))
             print('Critic_Loss: ', critic_loss)
-            print('Correlation: ', self.logging_df.loc[self.logging_df.shape[0]-1, 'Correlation Next State'])
+            print('Correlation: ', self.LogManager.logging_df.loc[self.LogManager.logging_df.shape[0]-1, 'Metric Next State'])
             
             prev_selected_bands = current_selected_bands
+
+        self.LogManager.save_npy('selected_bands.npy', prev_selected_bands)
 
 
     def generateTrajectories(self):
@@ -89,7 +96,7 @@ class RL_Trainer():
             action, action_type = self.agent.policy.get_action(state)
             state_next[action] += 1
 
-            reward, correlation_current_state, correlation_next_state = self.calculate_reward(state, state_next)
+            reward, metric_current_state, metric_next_state = self.calculate_reward(state, state_next)
 
             terminal = 1 if i == self.band_selection_num - 1 else 0
             path.append(self.Path(state.copy(), action, state_next.copy(), reward, terminal))
@@ -117,13 +124,13 @@ class RL_Trainer():
                     "Mean": torch.mean(q_values).detach().numpy(),
                     "Min": torch.min(q_values).detach().numpy(),
                     "Max": torch.max(q_values).detach().numpy(),
-                    "Correlation Current State" : correlation_current_state,
-                    "Correlation Next State" : correlation_next_state,
+                    "Metric Current State" : metric_current_state,
+                    "Metric Next State" : metric_next_state,
                     "Reward" : reward,
                     "Loss" : loss_value
                 }
                 
-                self.logging_df = self.logging_df.append(row, ignore_index=True)
+                self.LogManager.logging_df = self.LogManager.logging_df.append(row, ignore_index=True)
                      
         return path
 

@@ -17,25 +17,26 @@ from matplotlib.pyplot import figure
 import pickle
 from utils import from_numpy, to_numpy, DataManager, ReplayBuffer
 from rl_trainer import RL_Trainer
-from agents.dqn_agent import DQNAgent
+
 
 params = {'agent':{
-            'agent_class' : DQNAgent,
-            'n_iter':10000,
+            'agent_class' : 'DQN',
+            'n_iter':100,
             'trajectory_sample_size': 10,
             'batch_size':10,
             'num_critic_updates':10,
-            'num_bands':200,
-            'reward_type':'correlation'
+            'num_bands':81,
+            'reward_type':'correlation',
+            'exp_reward':True
             },
           'data':{
             'band_selection_num':30,
-            'dataset_type':'IndianPines',
-            'data_file_path':r'/Users/pratikaher/FALL22/HyperSpectralRL/ForPratik/data_indian_pines_drl.mat',
+            'dataset_type':'SoilMoisture',
             'sample_ratio':0.1
             },
           'critic':{
-            'gamma':0.99
+            'gamma':0.99,
+            'double_q':False
             },
           'policy':{
             'epsilon':0.99,
@@ -55,7 +56,8 @@ if __name__ == "__main__":
 
     rl_trainer.run_training_loop()
 
-    print(rl_trainer.logging_df.head())
+    print(rl_trainer.LogManager.logging_df.head())
+    rl_trainer.LogManager.log_final_data()
 
 
 # import pickle
