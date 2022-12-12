@@ -1,1 +1,0 @@
-{"agent": {"agent_class": "DQN", "n_iter": 2000, "trajectory_sample_size": 10, "batch_size": 10, "num_critic_updates": 10, "num_bands": 200, "reward_type": "correlation", "exp_reward": true}, "data": {"band_selection_num": 30, "dataset_type": "IndianPines", "sample_ratio": 1}, "critic": {"gamma": 0.99, "double_q": true}, "policy": {"epsilon": 0.99, "epsilon_decay": 0.9999}}

@@ -1,1 +1,0 @@
-{"agent": {"agent_class": "DQN", "n_iter": 2000, "trajectory_sample_size": 10, "batch_size": 10, "num_critic_updates": 10, "num_bands": 224, "reward_type": "mutual_info", "exp_reward": true}, "data": {"band_selection_num": 30, "dataset_type": "PlasticFlakes", "sample_ratio": 0.1}, "critic": {"gamma": 0.99, "double_q": true}, "policy": {"epsilon": 0.99, "epsilon_decay": 0.9999}}
