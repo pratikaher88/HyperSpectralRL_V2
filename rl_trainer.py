@@ -10,6 +10,7 @@ from utils import from_numpy, to_numpy, DataManager, ReplayBuffer, LogManager
 from agents.dqn_agent import DQNAgent
 from sklearn.metrics import normalized_mutual_info_score
 
+
 class RL_Trainer():
 
     def __init__(self, params, external_cache = {}):
@@ -32,6 +33,7 @@ class RL_Trainer():
             self.reward_func = self.calculate_mutual_infos
         
         self.data_params = params['data']
+        self.agent_class = self.agent_params['agent_class']
         
         self.DataManager = DataManager(self.data_params, self.num_bands)
         self.LogManager.log_json('data_metadata.json', self.DataManager.data_metadata)
@@ -44,7 +46,7 @@ class RL_Trainer():
         if self.agent_params['agent_class'] == 'DQN':
             agent_class = DQNAgent
         elif self.agent_params['agent_class'] == 'AC':
-            agent_class = DQNAgent
+            agent_class = ACAgent
 
         self.agent = agent_class(self, params)
         self.exp_reward = self.agent_params['exp_reward']
@@ -111,7 +113,13 @@ class RL_Trainer():
             state = state_next.copy()
         
             if iter_num % 25 == 0:
-                q_values = self.agent.critic.get_action(state)
+
+                if self.agent_class == 'DQN':
+                    q_values = self.agent.critic.get_action(state)
+                elif self.agent_class == 'AC':
+                    q_values, _ = self.agent.policy.get_action(state)
+                    q_values = from_numpy(q_values)
+                    # print("Q values from network", q_values)
                 
                 sampled_paths = self.replay_buffer.sample_buffer_random(1)
                 

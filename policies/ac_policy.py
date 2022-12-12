@@ -22,7 +22,7 @@ class CriticPolicy():
         )
         
         self.gamma = critic_params['gamma']
-        
+
     def forward(self, obs):
         if isinstance(obs, np.ndarray):
             obs = from_numpy(obs)
@@ -105,7 +105,7 @@ class ActorPolicy():
         action_distribution = self.forward(obs)
         action = action_distribution.sample()
         
-        return to_numpy(action)
+        return to_numpy(action), "Random"
     
     def forward(self, observation):
         

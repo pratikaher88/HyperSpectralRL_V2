@@ -93,7 +93,7 @@ class RL_Trainer():
         path = []
         for i in range(self.band_selection_num):
             
-            action = self.agent.actor_policy.get_action(state)
+            action = self.agent.policy.get_action(state)
             state_next[action] += 1
 
             reward, correlation_current_state, correlation_next_state = self.calculate_reward(state, state_next)
