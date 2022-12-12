@@ -26,7 +26,7 @@ params = {'agent':{
             'batch_size':10,
             'num_critic_updates':10,
             'num_bands':81,
-            'reward_type':'correlation',
+            'reward_type':'mutual_info', #must be correlation or mutual info
             'exp_reward':True
             },
           'data':{
