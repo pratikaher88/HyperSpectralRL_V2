@@ -125,7 +125,7 @@ class DataManager():
 
         for _, _, files in os.walk(data_folder):
             for idx, file in enumerate(files):
-                print(f'\rLoading {idx} out of {len(files)}', end='')
+                print(f'\rLoading {idx+1} out of {len(files)}', end='')
                 file_data = np.load(os.path.join(data_folder, file))
 
                 if isinstance(data, type(None)):
@@ -168,7 +168,7 @@ class LogManager():
 
         filter_df = self.logging_df[self.logging_df['Selected Band'] == band_selection_num-1]
         sns.lineplot(x='iter_num', y='Metric Next State', data=filter_df)
-        plt.show()
+        
         plt.savefig(os.path.join(self.dir_name, 'reward.png'))
 
 
