@@ -8,6 +8,7 @@ import torch
 from matplotlib.pyplot import figure
 from utils import from_numpy, to_numpy, DataManager, ReplayBuffer, LogManager
 from agents.dqn_agent import DQNAgent
+from sklearn.metrics import normalized_mutual_info_score
 
 class RL_Trainer():
 
@@ -24,6 +25,7 @@ class RL_Trainer():
         self.data_params = params['data']
         self.band_selection_num = self.data_params['band_selection_num']
 
+        assert self.agent_params['reward_type'] in ['correlation', 'mutual_info'], 'Invalid Reward Type'
         if self.agent_params['reward_type'] == 'correlation':
             self.reward_func = self.calculate_correlations
         elif self.agent_params['reward_type'] == 'mutual_info':
@@ -187,6 +189,27 @@ class RL_Trainer():
 #         return self.cache[repr(state)]
         return corr_sum/(len(selected_bands)**2)
 
+
+    def calculate_mutual_infos(self, state):
+
+        if np.sum(state) <= 1:
+            return 0
+        
+        selected_bands = []
+        non_zero_bands = np.argwhere(np.array(state) != 0)
+        for band in non_zero_bands:
+#             print(band[0])
+            selected_bands.extend([band[0]]*int(state[band[0]]))
+
+        normalized_mutual_info_score_sum = 0
+        for i in selected_bands:
+            for j in selected_bands:
+                
+                normalized_mutual_info_score_sum += normalized_mutual_info_score(self.DataManager.rl_data[:, i],
+                                                                                 self.DataManager.rl_data[:, j])
+                
+        return normalized_mutual_info_score_sum/(len(selected_bands)**2)
+        
     
     def Path(self, ob, ac, ob_next, re, terminal):
         return {'ob':ob,
