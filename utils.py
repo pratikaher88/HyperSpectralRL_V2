@@ -89,7 +89,7 @@ class DataManager():
         self.rl_data = self._stack('data/indian_pines/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
         
 
         
@@ -99,7 +99,7 @@ class DataManager():
         self.rl_data = self._stack('data/salient_objects/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
 
         #self.rl_data = np.load('')
         # randomly sample for x% of the pixels
@@ -111,7 +111,7 @@ class DataManager():
         self.rl_data = self._stack('data/plastic_flakes/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
         
     def load_botswana_data(self):
         self.rl_data = scipy.io.loadmat(self.data_file_path)
@@ -121,17 +121,18 @@ class DataManager():
         self.rl_data = self._stack('data/soil_moisture/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
 
     def load_foods_data(self):
         self.rl_data = self._stack('data/foods/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
 
 
     def _sample(self):
-        indices = np.random.randint(0, self.rl_data.shape[0], int(self.rl_data.shape[0]*self.sample_ratio))
+        #indices = np.random.randint(0, self.rl_data.shape[0], int(self.rl_data.shape[0]*self.sample_ratio))
+        indices = np.random.choice(np.arange(0, self.rl_data.shape[0], 1), int(self.rl_data.shape[0]*self.sample_ratio), replace=False)
         self.rl_data = self.rl_data[indices, :]
         self.data_metadata['sample_row_count'] = self.rl_data.shape[0]
 
@@ -184,7 +185,6 @@ class LogManager():
 
         filter_df = self.logging_df[self.logging_df['Selected Band'] == band_selection_num-1]
         sns.lineplot(x='iter_num', y='Metric Next State', data=filter_df)
-        plt.show()
         plt.savefig(os.path.join(self.dir_name, 'reward.png'))
 
 

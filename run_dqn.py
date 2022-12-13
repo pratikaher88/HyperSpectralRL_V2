@@ -22,7 +22,7 @@ from rl_trainer import RL_Trainer
 
 params = {'agent':{
         'agent_class' : 'DQN',
-        'n_iter':3000,
+        'n_iter':2001,
         'trajectory_sample_size': 10,
         'batch_size':10,
         'num_critic_updates':10,
@@ -54,11 +54,11 @@ if __name__ == "__main__":
     #  agent = DQNAgent(params, data_cache_loaded)
     # agent.runAgent()
 
-    sample_map = {'IndianPines':1, 'SalientObjects':0.01, 'PlasticFlakes':0.1, 'SoilMoisture':0.5, 'Foods':1}
+    sample_map = {'IndianPines':1, 'SalientObjects':1, 'PlasticFlakes':1, 'SoilMoisture':1, 'Foods':1}
     num_bands_map = {'IndianPines':200, 'SalientObjects':81, 'PlasticFlakes':224, 'SoilMoisture':125, 'Foods':96}
 
-    for dataset in ['IndianPines', 'SalientObjects', 'PlasticFlakes', 'SoilMoisture', 'Foods']:
-      for double_q in [True, False]:
+    for dataset in ['Foods']:  #'IndianPines', 'SalientObjects', 'PlasticFlakes', 'SoilMoisture', Foods
+      for double_q in [False]:
         for reward_type in ['mutual_info']:
           
           params['data']['dataset_type'] = dataset
@@ -67,12 +67,12 @@ if __name__ == "__main__":
           params['data']['sample_ratio'] = sample_map[dataset]
           params['agent']['num_bands'] = num_bands_map[dataset]
 
-    rl_trainer = RL_Trainer(params)
+          rl_trainer = RL_Trainer(params)
 
-    rl_trainer.run_training_loop()
+          rl_trainer.run_training_loop()
 
-    print(rl_trainer.LogManager.logging_df.head())
-    rl_trainer.LogManager.log_final_data()
+          print(rl_trainer.LogManager.logging_df.head())
+          rl_trainer.LogManager.log_final_data()
 
 
 # import pickle
