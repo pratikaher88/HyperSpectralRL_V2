@@ -184,7 +184,6 @@ class LogManager():
 
         filter_df = self.logging_df[self.logging_df['Selected Band'] == band_selection_num-1]
         sns.lineplot(x='iter_num', y='Metric Next State', data=filter_df)
-        plt.show()
         plt.savefig(os.path.join(self.dir_name, 'reward.png'))
 
 

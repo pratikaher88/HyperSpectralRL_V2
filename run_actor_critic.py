@@ -5,7 +5,7 @@ from agents.ac_agent import ACAgent
 
 params = {'agent':{
             'agent_class': 'AC',
-            'n_iter':5000,
+            'n_iter': 2000,
             'trajectory_sample_size': 10,
             'batch_size':10,
             'num_critic_updates':10,
@@ -45,14 +45,15 @@ params = {'agent':{
 
 if __name__ == "__main__":
 
-    with open('data/data_cache.pickle', 'rb') as handle:
-        data_cache_loaded = pickle.load(handle)
+    # with open('data/data_cache.pickle', 'rb') as handle:
+    #     data_cache_loaded = pickle.load(handle)
     
-    rl_trainer = RL_Trainer(params, data_cache_loaded)
+    rl_trainer = RL_Trainer(params)
 
     rl_trainer.run_training_loop()
 
-    print(rl_trainer.logging_df.head())
+    print(rl_trainer.LogManager.logging_df.head())
+    rl_trainer.LogManager.log_final_data()
 
 
 # import pickle
