@@ -188,6 +188,7 @@ class RL_Trainer():
 #             print(band[0])
             selected_bands.extend([band[0]]*int(state[band[0]]))
         #print(selected_bands)
+        #print(self.DataManager.rl_data.shape)
         #selected_bands = np.squeeze(np.argwhere(np.array(state)==1))
         corr_sum = 0
         for idx_i, i in enumerate(selected_bands):
