@@ -1,7 +1,5 @@
 import pickle
 from rl_trainer import RL_Trainer
-from agents.ac_agent import ACAgent
-
 
 params = {'agent':{
             'agent_class': 'AC',
@@ -20,7 +18,7 @@ params = {'agent':{
             'band_selection_num': 30,
             'learning_rate': 0.001,
             'epsilon': 1,
-            'epsilon_decay':0.9999999
+            'epsilon_decay':0.99999
           },
           'critic':{
             'num_grad_steps_per_target_update' : 1,

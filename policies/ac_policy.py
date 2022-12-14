@@ -147,9 +147,10 @@ class ActorPolicy():
             unselected_bands = np.squeeze(np.argwhere(obs == 0))
             while selected_idx in selected_bands:
                 selected_idx = action_distribution.sample()
-                if count > 10:
-                    selected_idx = np.random.choice(unselected_bands)
-                count += 1
+                # TODO : FIx this if it slows down runs
+                # if count > 10:
+                #     selected_idx = np.random.choice(unselected_bands)
+                # count += 1
 
 
             # print(selected_idx)
