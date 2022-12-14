@@ -3,7 +3,7 @@ from agents.dqn_agent import DQNAgent
 from agents.sac_agent import SACAgent
 
 from agents.ac_agent import ACAgent
-import scipy
+import utils
 import numpy as np
 import pandas as pd
 import torch.nn as nn
@@ -103,11 +103,14 @@ class RL_Trainer():
         state = np.zeros(self.num_bands)
         state_next = state.copy()
         
+        action_type_count = 0
+
         #paths will be a list of dictionaries
         path = []
         for i in range(self.band_selection_num):
             
-            action, action_type = self.agent.policy.get_action(state)
+            action, action_type = self.agent.get_next_action(state)
+
             # action = action[0]
             # print(action.item())
             # action = action.item()
@@ -123,6 +126,11 @@ class RL_Trainer():
             state = state_next.copy()
         
             if iter_num % 25 == 0:
+                
+                # TODO remove this
+                # action_probabilities = self.agent.get_action_probabilities(state)
+                # action = np.argmax(action_probabilities)
+                # action_type = "Argmax action"
 
                 if self.agent_class == 'DQN':
                     q_values = self.agent.critic.get_action(state)
@@ -130,7 +138,7 @@ class RL_Trainer():
                     q_values = self.agent.critic.get_action(state)
                 elif self.agent_class == 'SAC':
                     # TODO check if get action is correct
-                    q_values = self.agent.critic.get_action(state, action)
+                    q_values = self.agent.predict_q_values(state)
                     # q_values = from_numpy(np.ndarray([q_values]))
                     # print("Q values from network", q_values)
                 
@@ -142,12 +150,14 @@ class RL_Trainer():
                 obs_next = np.array([path['ob_next'] for path in flat_sampled_path])
                 res = np.array([path['re'] for path in flat_sampled_path])
                 terminals = np.array([path['terminal'] for path in flat_sampled_path])
+
+                obs, acs, obs_next, res, terminals = utils.from_numpy(obs), utils.from_numpy(acs), utils.from_numpy(obs_next), utils.from_numpy(res), utils.from_numpy(terminals)
                 
                 if self.agent_class == 'SAC':
-                    loss_value = self.agent.update_critic(obs, acs, obs_next, res, terminals)
-                else:
-                    loss_value = self.agent.critic.update(obs, acs, obs_next, res, terminals)
-                
+                    loss_value = self.agent.critic_loss(obs, acs, res, obs_next, terminals)
+            #     else:
+            #         loss_value = self.agent.critic.update(obs, acs, obs_next, res, terminals)
+                                
                 row = {
                     "iter_num": iter_num,
                     "Selected Band": i,
@@ -158,13 +168,19 @@ class RL_Trainer():
                     "Metric Current State" : metric_current_state,
                     "Metric Next State" : metric_next_state,
                     "Reward" : reward,
-                    "Loss" : loss_value
+                    "Loss" : loss_value,
+                    "action_proba_values_b_0" : max(self.agent.actor_local.forward(from_numpy(np.zeros(self.num_bands)).unsqueeze(0)).detach().numpy()[0])
                 }
 
-                print(row)
+                # print(row["action_proba_values_b_0"])
+                if action_type == "SAC Action":
+                    action_type_count += 1
                 
                 self.LogManager.logging_df = self.LogManager.logging_df.append(row, ignore_index=True)
-                     
+            
+        if iter_num % 25 == 0:
+            print("Action Type Count", action_type_count)
+
         return path
 
     def calculate_reward(self, state, state_next):
