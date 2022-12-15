@@ -1,5 +1,6 @@
 from agents.dqn_agent import DQNAgent
 from agents.ac_agent import ACAgent
+from agents.rnd_agent import ExplorationOrExploitationAgent
 import scipy
 import numpy as np
 import pandas as pd
@@ -33,7 +34,7 @@ class RL_Trainer():
             self.reward_func = self.calculate_mutual_infos
         
         self.data_params = params['data']
-        self.agent_class = self.agent_params['agent_class']
+        #self.agent_class = self.agent_params['agent_class']
         
         self.DataManager = DataManager(self.data_params, self.num_bands)
         self.LogManager.log_json('data_metadata.json', self.DataManager.data_metadata)
@@ -41,12 +42,15 @@ class RL_Trainer():
         self.replay_buffer = ReplayBuffer()
         self.cache = external_cache
 
-        assert self.agent_params['agent_class'] in ['DQN', 'AC'], 'Invalid Agent Type'
-        
+        assert self.agent_params['agent_class'] in ['DQN', 'AC', 'RND'], 'Invalid Agent Type'
+        self.agent_class = self.agent_params['agent_class']
+
         if self.agent_params['agent_class'] == 'DQN':
             agent_class = DQNAgent
         elif self.agent_params['agent_class'] == 'AC':
             agent_class = ACAgent
+        elif self.agent_params['agent_class'] == 'RND':
+            agent_class = ExplorationOrExploitationAgent
 
         self.agent = agent_class(self, params)
         self.exp_reward = self.agent_params['exp_reward']
@@ -130,15 +134,26 @@ class RL_Trainer():
                 res = np.array([path['re'] for path in flat_sampled_path])
                 terminals = np.array([path['terminal'] for path in flat_sampled_path])
                 
-                loss_value = self.agent.critic.update(obs, acs, obs_next, res, terminals)
+                if self.agent_class == 'RND':
+                    #Will deal with this later
+                    loss_value = None 
+                    q_mean = None
+                    q_min = None
+                    q_max = None
+                else:
+                    loss_value = self.agent.critic.update(obs, acs, obs_next, res, terminals)
+                    q_mean = torch.mean(q_values).detach().numpy()
+                    q_min = torch.min(q_values).detach().numpy() 
+                    q_max = torch.max(q_values).detach().numpy()
                 
+
                 row = {
                     "iter_num": iter_num,
                     "Selected Band": i,
                     "Action Type": action_type,
-                    "Mean": torch.mean(q_values).detach().numpy(),
-                    "Min": torch.min(q_values).detach().numpy(),
-                    "Max": torch.max(q_values).detach().numpy(),
+                    "Mean": q_mean,
+                    "Min": q_min,
+                    "Max": q_max,
                     "Metric Current State" : metric_current_state,
                     "Metric Next State" : metric_next_state,
                     "Reward" : reward,

@@ -40,6 +40,7 @@ class ReplayBuffer():
         rand_idx = np.random.permutation(len(self.paths))[:num_trajectories]
         return [self.paths[i] for i in rand_idx]
 
+
 class DataManager():
     def __init__(self, params, num_bands):
         self.rl_data = None
@@ -232,3 +233,13 @@ def from_numpy(*args, **kwargs):
 
 def to_numpy(tensor):
     return tensor.to('cpu').detach().numpy()
+
+def normalize(data, mean, std, eps=1e-8):
+    return (data-mean)/(std+eps)
+
+def check_tensor(ar):
+    
+    if isinstance(ar, np.ndarray):
+        ar = from_numpy(ar)
+        
+    return ar

@@ -59,3 +59,6 @@ class ArgMaxPolicy():
                 
     def decay_epsilon(self):
         self.epsilon *= self.epsilon_decay 
+
+    def set_critic(self, critic):
+        self.critic = critic

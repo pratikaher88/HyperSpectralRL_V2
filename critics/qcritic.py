@@ -21,6 +21,7 @@ class QCritic():
     
     def __init__(self, params, num_bands):
         
+        self.exploration_params = params['exploration']
         self.num_bands = num_bands
         
         self.critic = self.create_network()
@@ -28,7 +29,7 @@ class QCritic():
 
         self.critic_target = self.create_network()
         
-        self.gamma = params['gamma']
+        self.gamma = self.exploration_params['gamma']
         self.double_q = params['double_q']
         
         self.loss = nn.SmoothL1Loss()
@@ -50,6 +51,7 @@ class QCritic():
         # will take in one hot encoded states and output a list of qu values
         
         q_values = self.critic(obs)
+        ### TO BE DISCUSSED
         q_values = q_values - (obs*999)
         
         return q_values
