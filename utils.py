@@ -6,9 +6,24 @@ import os
 from datetime import datetime
 import pandas as pd
 import json
-import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
+from torch import nn
+from typing import Union
+
+_str_to_activation = {
+    'relu': nn.ReLU(),
+    'tanh': nn.Tanh(),
+    'leaky_relu': nn.LeakyReLU(),
+    'sigmoid': nn.Sigmoid(),
+    'selu': nn.SELU(),
+    'softplus': nn.Softplus(),
+    'identity': nn.Identity(),
+    'softmax': nn.Softmax(),
+    'linear': nn.Linear(64, 64)
+}
+
+Activation = Union[str, nn.Module]
 
 class ReplayBuffer():
     
@@ -74,7 +89,7 @@ class DataManager():
         self.rl_data = self._stack('data/indian_pines/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
         
 
         
@@ -84,7 +99,7 @@ class DataManager():
         self.rl_data = self._stack('data/salient_objects/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
 
         #self.rl_data = np.load('')
         # randomly sample for x% of the pixels
@@ -96,7 +111,7 @@ class DataManager():
         self.rl_data = self._stack('data/plastic_flakes/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
         
     def load_botswana_data(self):
         self.rl_data = scipy.io.loadmat(self.data_file_path)
@@ -106,17 +121,18 @@ class DataManager():
         self.rl_data = self._stack('data/soil_moisture/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
 
     def load_foods_data(self):
         self.rl_data = self._stack('data/foods/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self._sample()
 
 
     def _sample(self):
-        indices = np.random.randint(0, self.rl_data.shape[0], int(self.rl_data.shape[0]*self.sample_ratio))
+        #indices = np.random.randint(0, self.rl_data.shape[0], int(self.rl_data.shape[0]*self.sample_ratio))
+        indices = np.random.choice(np.arange(0, self.rl_data.shape[0], 1), int(self.rl_data.shape[0]*self.sample_ratio), replace=False)
         self.rl_data = self.rl_data[indices, :]
         self.data_metadata['sample_row_count'] = self.rl_data.shape[0]
 
@@ -169,11 +185,44 @@ class LogManager():
 
         filter_df = self.logging_df[self.logging_df['Selected Band'] == band_selection_num-1]
         sns.lineplot(x='iter_num', y='Metric Next State', data=filter_df)
-        plt.show()
         plt.savefig(os.path.join(self.dir_name, 'reward.png'))
 
 
-
+def build_mlp(
+        input_size: int,
+        output_size: int,
+        n_layers: int,
+        size: int,
+        activation: Activation = 'tanh',
+        output_activation: Activation = 'identity',
+):
+    """
+        Builds a feedforward neural network
+        arguments:
+            input_placeholder: placeholder variable for the state (batch_size, input_size)
+            scope: variable scope of the network
+            n_layers: number of hidden layers
+            size: dimension of each hidden layer
+            activation: activation of each hidden layer
+            input_size: size of the input layer
+            output_size: size of the output layer
+            output_activation: activation of the output layer
+        returns:
+            output_placeholder: the result of a forward pass through the hidden layers + the output layer
+    """
+    if isinstance(activation, str):
+        activation = _str_to_activation[activation]
+    if isinstance(output_activation, str):
+        output_activation = _str_to_activation[output_activation]
+    layers = []
+    in_size = input_size
+    for _ in range(n_layers):
+        layers.append(nn.Linear(in_size, size))
+        layers.append(activation)
+        in_size = size
+    layers.append(nn.Linear(in_size, output_size))
+    layers.append(output_activation)
+    return nn.Sequential(*layers)
 
 
 device = 'cpu'

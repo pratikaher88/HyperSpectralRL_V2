@@ -20,8 +20,8 @@ class ACAgent():
         self.num_critic_updates = self.agent_params['num_critic_updates']
         self.gamma = critic_params['gamma']
         
-        self.actor_policy = ActorPolicy(actor_params)
-        self.critic_policy = CriticPolicy(critic_params)
+        self.policy = ActorPolicy(actor_params)
+        self.critic = CriticPolicy(critic_params)
 
         self.replay_buffer = parent.replay_buffer
         
@@ -39,12 +39,12 @@ class ACAgent():
             terminals = np.array([path['terminal'] for path in flat_sampled_path])
         
             for _ in range(self.agent_params['num_critic_updates_per_agent_update']):
-                critic_loss = self.critic_policy.update(obs, acs, obs_next, res, terminals)
+                critic_loss = self.critic.update(obs, acs, obs_next, res, terminals)
 
             advantages = self.estimate_advantage(obs, obs_next, res, terminals)
 
             for _ in range(self.agent_params['num_actor_updates_per_agent_update']):
-                actor_loss = self.actor_policy.update(obs, acs, adv_n=advantages)
+                actor_loss = self.policy.update(obs, acs, adv_n=advantages)
 
             loss = OrderedDict()
             loss['Critic_Loss'] = critic_loss
@@ -54,8 +54,8 @@ class ACAgent():
     
     def estimate_advantage(self, ob_no, next_ob_no, re_n, terminal_n):
         
-        v_n = self.critic_policy.forward_np(ob_no)
-        next_v_n = self.critic_policy.forward_np(next_ob_no)
+        v_n = self.critic.forward_np(ob_no)
+        next_v_n = self.critic.forward_np(next_ob_no)
 
         assert v_n.shape == next_v_n.shape == re_n.shape == terminal_n.shape
 
