@@ -6,9 +6,24 @@ import os
 from datetime import datetime
 import pandas as pd
 import json
-import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
+from torch import nn
+from typing import Union
+
+_str_to_activation = {
+    'relu': nn.ReLU(),
+    'tanh': nn.Tanh(),
+    'leaky_relu': nn.LeakyReLU(),
+    'sigmoid': nn.Sigmoid(),
+    'selu': nn.SELU(),
+    'softplus': nn.Softplus(),
+    'identity': nn.Identity(),
+    'softmax': nn.Softmax(),
+    'linear': nn.Linear(64, 64)
+}
+
+Activation = Union[str, nn.Module]
 
 class ReplayBuffer():
     
@@ -54,20 +69,29 @@ class DataManager():
         elif self.dataset_type == 'Foods':
             self.load_foods_data()
 
-    def load_foods_data(self):
 
-        self.rl_data = self._stack('data/foods/hyperspectral_imagery')
-        self.data_metadata['col_count'] = self.rl_data.shape[1]
-        self.data_metadata['full_row_count'] = self.rl_data.shape[0]
-        self._sample()
+        #self.x_train = None
+        #self.y_train = None
+        #self.x_test = None
+        #self.y_test = None
+
+
         
     def load_indian_pine_data(self):
-
+        #hyper_path = self.data_file_path
+        #hyper = scipy.io.loadmat(hyper_path)['x'][:, :self.num_bands]
+        #hyper = np.load(hyper_path)
+        # randomly sample for x% of the pixels
+        #indices = np.random.randint(0, hyper.shape[0], int(hyper.shape[0]*self.sample_ratio))
+        #self.rl_data = hyper[indices, :]
+        #print(self.rl_data.shape)
 
         self.rl_data = self._stack('data/indian_pines/hyperspectral_imagery')
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
+        
+
         
         
     def load_salient_objects_data(self):
@@ -77,7 +101,11 @@ class DataManager():
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
 
-
+        #self.rl_data = np.load('')
+        # randomly sample for x% of the pixels
+        #indices = np.random.randint(0, hyper.shape[0], int(hyper.shape[0]*self.sample_ratio))
+        #self.rl_data = hyper[indices, :]
+        #print(self.rl_data.shape)
 
     def load_plastic_flakes_data(self):
         self.rl_data = self._stack('data/plastic_flakes/hyperspectral_imagery')
@@ -94,6 +122,13 @@ class DataManager():
         self.data_metadata['col_count'] = self.rl_data.shape[1]
         self.data_metadata['full_row_count'] = self.rl_data.shape[0]
         self._sample()
+
+    def load_foods_data(self):
+        self.rl_data = self._stack('data/foods/hyperspectral_imagery')
+        self.data_metadata['col_count'] = self.rl_data.shape[1]
+        self.data_metadata['full_row_count'] = self.rl_data.shape[0]
+        self._sample()
+
 
     def _sample(self):
         indices = np.random.randint(0, self.rl_data.shape[0], int(self.rl_data.shape[0]*self.sample_ratio))
@@ -137,6 +172,7 @@ class LogManager():
         self.logging_df.to_csv(f'{self.dir_name}/Results.csv')
 
     def log_json(self, file_name, params):
+        print(params)
         with open (f'{self.dir_name}/{file_name}', 'w') as f:
             json.dump(params, f)
 
@@ -148,11 +184,44 @@ class LogManager():
 
         filter_df = self.logging_df[self.logging_df['Selected Band'] == band_selection_num-1]
         sns.lineplot(x='iter_num', y='Metric Next State', data=filter_df)
-        plt.show()
         plt.savefig(os.path.join(self.dir_name, 'reward.png'))
 
 
-
+def build_mlp(
+        input_size: int,
+        output_size: int,
+        n_layers: int,
+        size: int,
+        activation: Activation = 'tanh',
+        output_activation: Activation = 'identity',
+):
+    """
+        Builds a feedforward neural network
+        arguments:
+            input_placeholder: placeholder variable for the state (batch_size, input_size)
+            scope: variable scope of the network
+            n_layers: number of hidden layers
+            size: dimension of each hidden layer
+            activation: activation of each hidden layer
+            input_size: size of the input layer
+            output_size: size of the output layer
+            output_activation: activation of the output layer
+        returns:
+            output_placeholder: the result of a forward pass through the hidden layers + the output layer
+    """
+    if isinstance(activation, str):
+        activation = _str_to_activation[activation]
+    if isinstance(output_activation, str):
+        output_activation = _str_to_activation[output_activation]
+    layers = []
+    in_size = input_size
+    for _ in range(n_layers):
+        layers.append(nn.Linear(in_size, size))
+        layers.append(activation)
+        in_size = size
+    layers.append(nn.Linear(in_size, output_size))
+    layers.append(output_activation)
+    return nn.Sequential(*layers)
 
 
 device = 'cpu'

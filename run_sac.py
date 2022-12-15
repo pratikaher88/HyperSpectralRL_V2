@@ -1,25 +1,29 @@
 import pickle
-from rl_trainer import RL_Trainer
+from rl_trainer_sac import RL_Trainer
+
 
 params = {'agent':{
-            'agent_class': 'AC',
-
-            'n_iter':2001,
-
+            'agent_class': 'SAC',
+            'n_iter': 2000,
             'trajectory_sample_size': 10,
-            'batch_size':10,
+            'batch_size': 20,
             'num_critic_updates':10,
             'num_bands':200,
             'reward_type':'correlation',
             'num_critic_updates_per_agent_update': 1,
             'num_actor_updates_per_agent_update' : 1,
+            'critic_target_update_frequency': 1,
+            'actor_update_frequency' : 1,
             'exp_reward': True
             },
           'actor':{
             'num_bands':200,
             'band_selection_num': 30,
+            'log_std_bounds': [-20,2],
+            'action_range': [-1,1],
+            'init_temperature': 1.0,
             'learning_rate': 0.001,
-            'epsilon': 1,
+            'epsilon': 0, #SAC
             'epsilon_decay':0.99999
           },
           'critic':{
@@ -37,6 +41,7 @@ params = {'agent':{
             'data':{
             'band_selection_num':30,
             'dataset_type':'IndianPines',
+            'data_file_path':r'/Users/pratikaher/FALL22/HyperSpectralRL/ForPratik/data_indian_pines_drl.mat',
             'sample_ratio':0.1
             },
          }
@@ -44,31 +49,15 @@ params = {'agent':{
 
 if __name__ == "__main__":
 
-
-    #with open('data/data_cache.pickle', 'rb') as handle:
-    #    data_cache_loaded = pickle.load(handle)
-
-    sample_map = {'IndianPines':1, 'SalientObjects':1, 'PlasticFlakes':1, 'SoilMoisture':1, 'Foods':1}
-    num_bands_map = {'IndianPines':200, 'SalientObjects':81, 'PlasticFlakes':224, 'SoilMoisture':125, 'Foods':96}
-
-    for dataset in ['Foods']: #'IndianPines', SalientObjects, 'PlasticFlakes',  'SoilMoisture', 'Foods'
-      for double_q in [True]:
-        for reward_type in ['mutual_info']:
-          
-          params['data']['dataset_type'] = dataset
-          params['critic']['double_q'] = double_q
-          params['agent']['reward_type'] = reward_type
-          params['data']['sample_ratio'] = sample_map[dataset]
-          params['agent']['num_bands'] = num_bands_map[dataset]
-          params['actor']['num_bands'] = num_bands_map[dataset]
-          params['critic']['num_bands'] = num_bands_map[dataset]
+    # with open('data/data_cache.pickle', 'rb') as handle:
+    #     data_cache_loaded = pickle.load(handle)
     
-          rl_trainer = RL_Trainer(params)
+    rl_trainer = RL_Trainer(params)
 
-          rl_trainer.run_training_loop()
+    rl_trainer.run_training_loop()
 
-          print(rl_trainer.LogManager.logging_df.head())
-          rl_trainer.LogManager.log_final_data()
+    print(rl_trainer.LogManager.logging_df.head())
+    rl_trainer.LogManager.log_final_data()
 
 
 # import pickle
